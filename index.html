@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interaktif Demir-Karbon Faz Diyagramı</title>
+  <title>İnteraktif Demir-Karbon Faz Diyagramı</title>
   <style>
     * {
       box-sizing: border-box;
@@ -30,10 +30,28 @@
       border: 1px solid #dcdfe6;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      max-width: 380px;
+      max-width: 800px;
       width: 100%;
       padding: 20px;
     }
+    
+    /* Yan Yana İki Kolon Düzeni */
+    .calc-content {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .left-col {
+      flex: 1 1 350px;
+      display: flex;
+      flex-direction: column;
+    }
+    .right-col {
+      flex: 1 1 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
     .btn-group {
       display: flex;
       flex-wrap: wrap;
@@ -63,7 +81,6 @@
     #svg-container {
       width: 100%;
       height: 300px;
-      margin-bottom: 15px;
       position: relative;
       cursor: crosshair;
       background: #fafafa;
@@ -122,9 +139,9 @@
     .result-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      margin-top: 15px;
-      padding-top: 15px;
+      gap: 12px;
+      margin-top: 5px;
+      padding-top: 10px;
       border-top: 1px solid #eee;
     }
     #result table {
@@ -159,7 +176,7 @@
     #micro-canvas {
       width: 100%;
       max-width: 340px;
-      height: 160px;
+      height: 140px;
       border: 2px solid #222;
       border-radius: 6px;
       background: #fafafa;
@@ -185,67 +202,77 @@
 </head>
 <body>
 
-<h1 class="page-title">Interactive Iron-Carbon Phase Diagram</h1>
+<h1 class="page-title">İnteraktif Demir-Karbon Faz Diyagramı</h1>
 
 <div class="calc-box" id="fec-calc">
-  <div class="btn-group" id="preset-buttons">
-    <button class="preset-btn" data-c="0.01" data-t="20">Pure Fe</button>
-    <button class="preset-btn active" data-c="0.45" data-t="20">Steel 1045</button>
-    <button class="preset-btn" data-c="0.8" data-t="20">Eutectoid Steel</button>
-    <button class="preset-btn" data-c="3.0" data-t="20">Cast Iron</button>
-    <button class="preset-btn" data-c="4.3" data-t="20">Ledeburite</button>
-    <button class="preset-btn" data-c="0.45" data-t="950">Austenite</button>
-  </div>
+  <div class="calc-content">
+    
+    <!-- Sol Kolon: Butonlar ve Faz Grafiği -->
+    <div class="left-col">
+      <div class="btn-group" id="preset-buttons">
+        <button class="preset-btn" data-c="0.01" data-t="20">Saf Fe</button>
+        <button class="preset-btn active" data-c="0.45" data-t="20">Ötektoid Altı Çelik (1045)</button>
+        <button class="preset-btn" data-c="0.8" data-t="20">Ötektoid Çelik</button>
+        <button class="preset-btn" data-c="3.0" data-t="20">Dökme Demir</button>
+        <button class="preset-btn" data-c="4.3" data-t="20">Ledeburit</button>
+        <button class="preset-btn" data-c="0.45" data-t="950">Östenit</button>
+      </div>
 
-  <div id="svg-container">
-    <svg width="100%" height="100%" viewBox="0 0 350 310" xmlns="http://www.w3.org/2000/svg" id="fec-svg">
-      <line x1="45" y1="280" x2="340" y2="280" stroke="#000" stroke-width="2"/>
-      <line x1="45" y1="20" x2="45" y2="280" stroke="#000" stroke-width="2"/>
-      
-      <text x="340" y="305" font-size="12" font-weight="bold" fill="#000" text-anchor="end">% C</text>
-      <text id="y-axis-label" x="40" y="12" font-size="12" font-weight="bold" fill="#000" text-anchor="end">T, °F</text>
-      
-      <g id="fec-grid"></g>
-      <g id="fec-lines"></g>
-      <g id="fec-labels"></g>
-      
-      <line id="crosshair-x" x1="45" y1="0" x2="340" y2="0" stroke="#e91e63" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8"/>
-      <line id="crosshair-y" x1="0" y1="20" x2="0" y2="280" stroke="#e91e63" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8"/>
-      <circle id="fec-pointer" cx="0" cy="0" r="5" fill="#e91e63" stroke="#fff" stroke-width="2" />
-    </svg>
-  </div>
-
-  <div class="input-group">
-    <div class="input-row">
-      <label for="c_val">Carbon C, %</label>
-      <input type="number" id="c_val" min="0" max="6.67" step="0.01" value="0.45">
+      <div id="svg-container">
+        <svg width="100%" height="100%" viewBox="0 0 350 310" xmlns="http://www.w3.org/2000/svg" id="fec-svg">
+          <line x1="45" y1="280" x2="340" y2="280" stroke="#000" stroke-width="2"/>
+          <line x1="45" y1="20" x2="45" y2="280" stroke="#000" stroke-width="2"/>
+          
+          <text x="340" y="305" font-size="12" font-weight="bold" fill="#000" text-anchor="end">% C</text>
+          <text id="y-axis-label" x="40" y="12" font-size="12" font-weight="bold" fill="#000" text-anchor="end">Sıcaklık, °C</text>
+          
+          <g id="fec-grid"></g>
+          <g id="fec-lines"></g>
+          <g id="fec-labels"></g>
+          
+          <line id="crosshair-x" x1="45" y1="0" x2="340" y2="0" stroke="#e91e63" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8"/>
+          <line id="crosshair-y" x1="0" y1="20" x2="0" y2="280" stroke="#e91e63" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8"/>
+          <circle id="fec-pointer" cx="0" cy="0" r="5" fill="#e91e63" stroke="#fff" stroke-width="2" />
+        </svg>
+      </div>
     </div>
-    <input type="range" id="c_range" class="range-slider" min="0" max="6.67" step="0.01" value="0.45">
-  </div>
 
-  <div class="input-group">
-    <div class="input-row">
-      <label style="display:flex; align-items:center; gap:8px;" for="t_val">
-        Temperature T
-        <select id="unit-sel" style="padding: 2px 4px; height: 28px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
-          <option value="F" selected>°F</option>
-          <option value="C">°C</option>
-        </select>
-      </label>
-      <input type="number" id="t_val" min="32" max="2912" step="10" value="68">
+    <!-- Sağ Kolon: Kontroller, Sonuç Tablosu ve Mikroyapı -->
+    <div class="right-col">
+      <div class="input-group">
+        <div class="input-row">
+          <label for="c_val">Karbon Miktarı (% C)</label>
+          <input type="number" id="c_val" min="0" max="6.67" step="0.01" value="0.45">
+        </div>
+        <input type="range" id="c_range" class="range-slider" min="0" max="6.67" step="0.01" value="0.45">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <label style="display:flex; align-items:center; gap:8px;" for="t_val">
+            Sıcaklık (T)
+            <select id="unit-sel" style="padding: 2px 4px; height: 28px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
+              <option value="C" selected>°C</option>
+              <option value="F">°F</option>
+            </select>
+          </label>
+          <input type="number" id="t_val" min="0" max="1600" step="10" value="20">
+        </div>
+        <input type="range" id="t_range" class="range-slider" min="0" max="1600" step="1" value="20">
+      </div>
+
+      <div class="result-wrapper">
+        <div id="result"></div>
+        <div class="micro-box">
+          <span>Mikroyapı Görünümü</span>
+          <canvas id="micro-canvas" width="336" height="140"></canvas>
+        </div>
+      </div>
     </div>
-    <input type="range" id="t_range" class="range-slider" min="32" max="2912" step="1" value="68">
+
   </div>
 
-  <div class="result-wrapper">
-    <div id="result"></div>
-    <div class="micro-box">
-      <span>Microstructure</span>
-      <canvas id="micro-canvas" width="336" height="160"></canvas>
-    </div>
-  </div>
-
-  <button class="screenshot-btn" onclick="takeScreenshot()">Download Results</button>
+  <button class="screenshot-btn" onclick="takeScreenshot()">Sonuçları İndir</button>
 </div>
 
 <script>
@@ -295,8 +322,8 @@ function drawFeCGrid() {
   txt("E", P.E, -5, -8); txt("S", P.S, -8, -8); txt("G", P.G, -15, 5);
   txt("P", P.P, -15, 15);
   
-  txt("L (Liquid)", [3, 1450], 0, 0);
-  txt("γ (Austenite)", [1, 1000], 0, 0);
+  txt("Sıvı (L)", [3, 1450], 0, 0);
+  txt("γ (Östenit)", [1, 1000], 0, 0);
   txt("Fe₃C", [6.67, 600], -40, 0);
   txt("α", [0.01, 800], 10, 0);
 
@@ -316,38 +343,38 @@ function drawFeCGrid() {
 }
 
 function getPhaseInfo(c, t) {
-  let type = "Alloy";
+  let type = "Alaşım";
   let phase = "";
 
   if (c <= 2.14) {
-    if (c <= 0.022) type = "Commercial Pure Iron";
-    else if (c < 0.8) type = "Hypoeutectoid Steel";
-    else if (c === 0.8) type = "Eutectoid Steel";
-    else type = "Hypereutectoid Steel";
+    if (c <= 0.022) type = "Ticari Saf Demir";
+    else if (c < 0.8) type = "Ötektoid Altı Çelik";
+    else if (c === 0.8) type = "Ötektoid Çelik";
+    else type = "Ötektoid Üstü Çelik";
   } else {
-    if (c < 4.3) type = "Hypoeutectic Cast Iron";
-    else if (c === 4.3) type = "Eutectic Cast Iron";
-    else type = "Hypereutectic Cast Iron";
+    if (c < 4.3) type = "Ötektik Altı Dökme Demir";
+    else if (c === 4.3) type = "Ötektik Dökme Demir";
+    else type = "Ötektik Üstü Dökme Demir";
   }
 
-  if (t > 1539) phase = "L (Liquid)";
+  if (t > 1539) phase = "Sıvı Faz (L)";
   else if (t > 1147) {
-    if (c < 2.14) phase = "Austenite (γ) + L";
-    else phase = "L + Cementite (I)";
+    if (c < 2.14) phase = "Östenit (γ) + Sıvı (L)";
+    else phase = "Sıvı (L) + Sementit (I)";
   } else if (t > 727 && t <= 1147) {
-    if (c < 0.02) phase = "Ferrite (α)";
-    else if (c <= 2.14) phase = "Austenite (γ)";
-    else if (c <= 4.3) phase = "Austenite + Ledeburite + Cem(II)";
-    else phase = "Cementite (I) + Ledeburite";
+    if (c < 0.02) phase = "Ferrit (α)";
+    else if (c <= 2.14) phase = "Östenit (γ)";
+    else if (c <= 4.3) phase = "Östenit + Ledeburit + Sementit (II)";
+    else phase = "Sementit (I) + Ledeburit";
   } else {
-    if (c <= 0.02) phase = "Ferrite (α) + Cem(III)";
-    else if (c < 0.8) phase = "Ferrite + Pearlite";
-    else if (c === 0.8) phase = "Pearlite";
-    else if (c <= 2.14) phase = "Pearlite + Cementite (II)";
-    else phase = "Pearlite + Cementite + Transf. Ledeburite";
+    if (c <= 0.02) phase = "Ferrit (α) + Sementit (III)";
+    else if (c < 0.8) phase = "Ferrit + Perlit";
+    else if (c === 0.8) phase = "Perlit";
+    else if (c <= 2.14) phase = "Perlit + Sementit (II)";
+    else phase = "Perlit + Sementit + Dönüşmüş Ledeburit";
   }
 
-  if (t > 1400 && c < 0.5) phase = "Liquid + Austenite";
+  if (t > 1400 && c < 0.5) phase = "Sıvı + Östenit";
 
   return { type, phase };
 }
@@ -462,7 +489,7 @@ function drawMicrostructure(c, t) {
   }
 }
 
-let current_unit = 'F';
+let current_unit = 'C';
 document.getElementById('unit-sel').addEventListener('change', function() {
   let val = parseFloat(document.getElementById('t_val').value);
   let t_c = (current_unit === 'F') ? (val - 32) * 5/9 : val;
@@ -483,7 +510,7 @@ document.getElementById('unit-sel').addEventListener('change', function() {
     t_input.value = newC; t_range.value = newC;
   }
   
-  document.getElementById('y-axis-label').textContent = current_unit === 'F' ? "T, °F" : "T, °C";
+  document.getElementById('y-axis-label').textContent = current_unit === 'F' ? "Sıcaklık, °F" : "Sıcaklık, °C";
   drawFeCGrid();
   calculateFeC();
 });
@@ -515,10 +542,10 @@ function calculateFeC() {
 
   document.getElementById('result').innerHTML = `
     <table>
-      <tr><td>Alloy Type</td><td>${info.type}</td></tr>
-      <tr><td>Carbon Content</td><td>${c.toFixed(2)} %</td></tr>
-      <tr><td>Temperature</td><td>${inputT.toFixed(0)} ${unitStr}</td></tr>
-      <tr><td>Phase Comp.</td><td style="color:#2e7d32; font-weight:bold;">${info.phase}</td></tr>
+      <tr><td>Alaşım Tipi</td><td>${info.type}</td></tr>
+      <tr><td>Karbon Oranı</td><td>% ${c.toFixed(2)}</td></tr>
+      <tr><td>Sıcaklık</td><td>${inputT.toFixed(0)} ${unitStr}</td></tr>
+      <tr><td>Mevcut Faz</td><td style="color:#2e7d32; font-weight:bold;">${info.phase}</td></tr>
     </table>
   `;
 }
@@ -586,7 +613,7 @@ function takeScreenshot() {
   if (!calcBox) return;
   html2canvas(calcBox, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
     const link = document.createElement('a');
-    link.download = 'fec_diagram.png';
+    link.download = 'fec_diyagrami.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
