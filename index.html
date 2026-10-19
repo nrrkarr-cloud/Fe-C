@@ -12,11 +12,18 @@
     body {
       background-color: #f4f6f9;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       min-height: 100vh;
       margin: 0;
       padding: 20px;
+    }
+    .page-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 20px;
+      text-align: center;
     }
     .calc-box {
       background: #ffffff;
@@ -178,14 +185,16 @@
 </head>
 <body>
 
+<h1 class="page-title">Interactive Iron-Carbon Phase Diagram</h1>
+
 <div class="calc-box" id="fec-calc">
   <div class="btn-group" id="preset-buttons">
-    <button class="preset-btn" data-c="0.01" data-t="20">Saf Fe</button>
-    <button class="preset-btn active" data-c="0.45" data-t="20">Çelik 1045</button>
-    <button class="preset-btn" data-c="0.8" data-t="20">Ötektoid Çelik</button>
-    <button class="preset-btn" data-c="3.0" data-t="20">Dökme Demir</button>
-    <button class="preset-btn" data-c="4.3" data-t="20">Ledeburit</button>
-    <button class="preset-btn" data-c="0.45" data-t="950">Östenit</button>
+    <button class="preset-btn" data-c="0.01" data-t="20">Pure Fe</button>
+    <button class="preset-btn active" data-c="0.45" data-t="20">Steel 1045</button>
+    <button class="preset-btn" data-c="0.8" data-t="20">Eutectoid Steel</button>
+    <button class="preset-btn" data-c="3.0" data-t="20">Cast Iron</button>
+    <button class="preset-btn" data-c="4.3" data-t="20">Ledeburite</button>
+    <button class="preset-btn" data-c="0.45" data-t="950">Austenite</button>
   </div>
 
   <div id="svg-container">
@@ -208,7 +217,7 @@
 
   <div class="input-group">
     <div class="input-row">
-      <label for="c_val">Karbon Oranı (C, %)</label>
+      <label for="c_val">Carbon C, %</label>
       <input type="number" id="c_val" min="0" max="6.67" step="0.01" value="0.45">
     </div>
     <input type="range" id="c_range" class="range-slider" min="0" max="6.67" step="0.01" value="0.45">
@@ -217,7 +226,7 @@
   <div class="input-group">
     <div class="input-row">
       <label style="display:flex; align-items:center; gap:8px;" for="t_val">
-        Sıcaklık T
+        Temperature T
         <select id="unit-sel" style="padding: 2px 4px; height: 28px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
           <option value="F" selected>°F</option>
           <option value="C">°C</option>
@@ -226,3 +235,112 @@
       <input type="number" id="t_val" min="32" max="2912" step="10" value="68">
     </div>
     <input type="range" id="t_range" class="range-slider" min="32" max="2912" step="1" value="68">
+  </div>
+
+  <div class="result-wrapper">
+    <div id="result"></div>
+    <div class="micro-box">
+      <span>Microstructure</span>
+      <canvas id="micro-canvas" width="336" height="160"></canvas>
+    </div>
+  </div>
+
+  <button class="screenshot-btn" onclick="takeScreenshot()">Download Results</button>
+</div>
+
+<script>
+const SVG_W = 350, SVG_H = 310;
+const PAD_L = 45, PAD_R = 10, PAD_T = 20, PAD_B = 30;
+const W = SVG_W - PAD_L - PAD_R; 
+const H = SVG_H - PAD_T - PAD_B;
+const MAX_C = 6.67;
+const MAX_T = 1600;
+
+function getX(c) { return PAD_L + (c / MAX_C) * W; }
+function getY(t) { return PAD_T + H - (t / MAX_T) * H; }
+
+const P = {
+  A: [0, 1539], B: [0.51, 1492], H: [0.08, 1492], J: [0.16, 1492],
+  N: [0, 1392], G: [0, 911], S: [0.8, 727], E: [2.14, 1147],
+  C: [4.3, 1147], D: [6.67, 1320], P: [0.022, 727], Q: [0.006, 0],
+  K: [6.67, 727], L: [6.67, 0], F: [6.67, 1147]
+};
+
+function drawFeCGrid() {
+  const linesGroup = document.getElementById('fec-lines');
+  const labelsGroup = document.getElementById('fec-labels');
+  let linesHtml = '';
+  let labelsHtml = '';
+  const isF = document.getElementById('unit-sel').value === 'F';
+
+  const l = (p1, p2, color="#2196F3", width=1.5) => {
+    linesHtml += `<line x1="${getX(p1[0])}" y1="${getY(p1[1])}" x2="${getX(p2[0])}" y2="${getY(p2[1])}" stroke="${color}" stroke-width="${width}"/>`;
+  };
+  
+  const txt = (text, p, dx=0, dy=0) => {
+    labelsHtml += `<text x="${getX(p[0])+dx}" y="${getY(p[1])+dy}" font-size="12" font-weight="bold" fill="#000" font-family="sans-serif">${text}</text>`;
+  };
+
+  linesHtml += `<line x1="${getX(0)}" y1="${getY(1147)}" x2="${getX(6.67)}" y2="${getY(1147)}" stroke="#999" stroke-dasharray="4,2"/>`;
+  linesHtml += `<line x1="${getX(0)}" y1="${getY(727)}" x2="${getX(6.67)}" y2="${getY(727)}" stroke="#999" stroke-dasharray="4,2"/>`;
+
+  l(P.A, P.B); l(P.B, P.C); l(P.C, P.D);
+  l(P.A, P.H); l(P.H, P.J); l(P.J, P.E); l(P.E, P.C); l(P.C, P.F);
+  l(P.N, P.H); l(P.N, P.G); l(P.G, P.S); l(P.S, P.E);
+  l(P.G, P.P); l(P.P, P.S); l(P.S, P.K);
+  l(P.P, P.Q); 
+  l([6.67, 1320], [6.67, 0], "#999", 2);
+
+  txt("A", P.A, -15, 15); txt("C", P.C, -5, 15); txt("D", P.D, 2, 4);
+  txt("E", P.E, -5, -8); txt("S", P.S, -8, -8); txt("G", P.G, -15, 5);
+  txt("P", P.P, -15, 15);
+  
+  txt("L (Liquid)", [3, 1450], 0, 0);
+  txt("γ (Austenite)", [1, 1000], 0, 0);
+  txt("Fe₃C", [6.67, 600], -40, 0);
+  txt("α", [0.01, 800], 10, 0);
+
+  [0.8, 2.14, 4.3, 6.67].forEach(c => {
+    labelsHtml += `<text x="${getX(c)}" y="${getY(0)+18}" font-size="12" fill="#000" font-weight="bold" text-anchor="middle">${c}</text>`;
+    labelsHtml += `<line x1="${getX(c)}" y1="${getY(0)}" x2="${getX(c)}" y2="${getY(0)+5}" stroke="#000" stroke-width="2"/>`;
+  });
+
+  [727, 1147, 1539].forEach(t => {
+    let displayT = isF ? Math.round(t * 9/5 + 32) : t;
+    labelsHtml += `<text x="${getX(0)-8}" y="${getY(t)+4}" font-size="12" fill="#000" font-weight="bold" text-anchor="end">${displayT}</text>`;
+    labelsHtml += `<line x1="${getX(0)-5}" y1="${getY(t)}" x2="${getX(0)}" y2="${getY(t)}" stroke="#000" stroke-width="2"/>`;
+  });
+
+  linesGroup.innerHTML = linesHtml;
+  labelsGroup.innerHTML = labelsHtml;
+}
+
+function getPhaseInfo(c, t) {
+  let type = "Alloy";
+  let phase = "";
+
+  if (c <= 2.14) {
+    if (c <= 0.022) type = "Commercial Pure Iron";
+    else if (c < 0.8) type = "Hypoeutectoid Steel";
+    else if (c === 0.8) type = "Eutectoid Steel";
+    else type = "Hypereutectoid Steel";
+  } else {
+    if (c < 4.3) type = "Hypoeutectic Cast Iron";
+    else if (c === 4.3) type = "Eutectic Cast Iron";
+    else type = "Hypereutectic Cast Iron";
+  }
+
+  if (t > 1539) phase = "L (Liquid)";
+  else if (t > 1147) {
+    if (c < 2.14) phase = "Austenite (γ) + L";
+    else phase = "L + Cementite (I)";
+  } else if (t > 727 && t <= 1147) {
+    if (c < 0.02) phase = "Ferrite (α)";
+    else if (c <= 2.14) phase = "Austenite (γ)";
+    else if (c <= 4.3) phase = "Austenite + Ledeburite + Cem(II)";
+    else phase = "Cementite (I) + Ledeburite";
+  } else {
+    if (c <= 0.02) phase = "Ferrite (α) + Cem(III)";
+    else if (c < 0.8) phase = "Ferrite + Pearlite";
+    else if (c === 0.8) phase = "Pearlite";
+    else if (c <=
