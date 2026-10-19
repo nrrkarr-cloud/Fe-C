@@ -343,4 +343,258 @@ function getPhaseInfo(c, t) {
     if (c <= 0.02) phase = "Ferrite (α) + Cem(III)";
     else if (c < 0.8) phase = "Ferrite + Pearlite";
     else if (c === 0.8) phase = "Pearlite";
-    else if (c <=
+    else if (c <= 2.14) phase = "Pearlite + Cementite (II)";
+    else phase = "Pearlite + Cementite + Transf. Ledeburite";
+  }
+
+  if (t > 1400 && c < 0.5) phase = "Liquid + Austenite";
+
+  return { type, phase };
+}
+
+function drawMicrostructure(c, t) {
+  const canvas = document.getElementById('micro-canvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const pearlitePattern = (() => {
+    const pCanv = document.createElement('canvas');
+    pCanv.width = 24; pCanv.height = 24;
+    const pCtx = pCanv.getContext('2d');
+    pCtx.fillStyle = '#e0e0e0'; pCtx.fillRect(0,0,24,24);
+    pCtx.strokeStyle = '#2c2c2c'; pCtx.lineWidth = 1.5;
+    pCtx.beginPath();
+    for(let y = 0; y <= 24; y += 4.5) {
+      pCtx.moveTo(0, y);
+      pCtx.bezierCurveTo(8, y-4, 16, y+4, 24, y);
+    }
+    pCtx.stroke();
+    return ctx.createPattern(pCanv, 'repeat');
+  })();
+
+  const drawGrains = (fill, stroke, width) => {
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    for (let i = -20; i < w + 20; i += 40) {
+      for (let j = -20; j < h + 20; j += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i + Math.random()*25, j + Math.random()*25);
+        ctx.lineTo(i + 40 + Math.random()*25, j + Math.random()*15);
+        ctx.lineTo(i + 40 + Math.random()*15, j + 40 + Math.random()*25);
+        ctx.lineTo(i + Math.random()*15, j + 40 + Math.random()*15);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  };
+
+  if (t > 1400 && c < 4.3) {
+    let grad = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, w);
+    grad.addColorStop(0, '#ffcc80');
+    grad.addColorStop(1, '#e64a19');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+  } else if (t > 727) {
+    if (c < 2.14) {
+      drawGrains('#fff9c4', '#8d6e63', 2);
+      ctx.beginPath();
+      for(let i=0; i<15; i++) { 
+         let x = Math.random()*w, y = Math.random()*h;
+         ctx.moveTo(x, y); ctx.lineTo(x+30-Math.random()*15, y+30-Math.random()*15);
+      }
+      ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 1; ctx.stroke();
+    } else {
+      ctx.fillStyle = '#fff'; 
+      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#fff9c4'; 
+      for(let i=0; i<80; i++) {
+        ctx.beginPath();
+        ctx.ellipse(Math.random()*w, Math.random()*h, Math.random()*12+4, Math.random()*18+6, Math.random()*Math.PI, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#a1887f'; ctx.lineWidth = 1; ctx.stroke();
+      }
+    }
+  } else {
+    if (c <= 0.02) {
+      drawGrains('#ffffff', '#616161', 1.5);
+    } else if (c < 0.8) {
+      drawGrains('#ffffff', '#616161', 1);
+      ctx.fillStyle = pearlitePattern;
+      let count = Math.floor((c / 0.8) * 45); 
+      for(let i=0; i<count; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random()*w, Math.random()*h, Math.random()*18+12, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+    } else if (c === 0.8) {
+      drawGrains(pearlitePattern, '#222', 2);
+    } else if (c <= 2.14) {
+      drawGrains(pearlitePattern, '#ffffff', 5); 
+      drawGrains('transparent', '#777', 0.5); 
+    } else {
+      ctx.fillStyle = '#f5f5f5'; 
+      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = pearlitePattern; 
+      for(let i=0; i<80; i++) {
+        ctx.beginPath();
+        ctx.ellipse(Math.random()*w, Math.random()*h, Math.random()*12+6, Math.random()*20+8, Math.random()*Math.PI, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+      }
+      if (c > 4.3) {
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#555';
+        for(let i=0; i<25; i++) {
+          ctx.beginPath();
+          let sx = Math.random()*w, sy = Math.random()*h;
+          ctx.moveTo(sx, sy); ctx.lineTo(sx+50, sy-20); ctx.lineTo(sx+55, sy-12);
+          ctx.closePath();
+          ctx.fill(); ctx.stroke();
+        }
+      }
+    }
+  }
+}
+
+let current_unit = 'F';
+document.getElementById('unit-sel').addEventListener('change', function() {
+  let val = parseFloat(document.getElementById('t_val').value);
+  let t_c = (current_unit === 'F') ? (val - 32) * 5/9 : val;
+  
+  current_unit = this.value;
+  let t_input = document.getElementById('t_val');
+  let t_range = document.getElementById('t_range');
+  
+  if (current_unit === 'F') {
+    t_input.min = 32; t_input.max = 2912;
+    t_range.min = 32; t_range.max = 2912;
+    let newF = Math.round(t_c * 9/5 + 32);
+    t_input.value = newF; t_range.value = newF;
+  } else {
+    t_input.min = 0; t_input.max = 1600;
+    t_range.min = 0; t_range.max = 1600;
+    let newC = Math.round(t_c);
+    t_input.value = newC; t_range.value = newC;
+  }
+  
+  document.getElementById('y-axis-label').textContent = current_unit === 'F' ? "T, °F" : "T, °C";
+  drawFeCGrid();
+  calculateFeC();
+});
+
+function calculateFeC() {
+  let c = parseFloat(document.getElementById('c_val').value);
+  let inputT = parseFloat(document.getElementById('t_val').value);
+  let isF = document.getElementById('unit-sel').value === 'F';
+  
+  let t_c = isF ? (inputT - 32) * 5/9 : inputT;
+  
+  if (c < 0) c = 0; if (c > MAX_C) c = MAX_C;
+  if (t_c < 0) t_c = 0; if (t_c > MAX_T) t_c = MAX_T;
+
+  const px = getX(c);
+  const py = getY(t_c);
+  
+  document.getElementById('fec-pointer').setAttribute('cx', px);
+  document.getElementById('fec-pointer').setAttribute('cy', py);
+  document.getElementById('crosshair-x').setAttribute('y1', py);
+  document.getElementById('crosshair-x').setAttribute('y2', py);
+  document.getElementById('crosshair-y').setAttribute('x1', px);
+  document.getElementById('crosshair-y').setAttribute('x2', px);
+
+  const info = getPhaseInfo(c, t_c);
+  drawMicrostructure(c, t_c);
+  
+  let unitStr = isF ? '°F' : '°C';
+
+  document.getElementById('result').innerHTML = `
+    <table>
+      <tr><td>Alloy Type</td><td>${info.type}</td></tr>
+      <tr><td>Carbon Content</td><td>${c.toFixed(2)} %</td></tr>
+      <tr><td>Temperature</td><td>${inputT.toFixed(0)} ${unitStr}</td></tr>
+      <tr><td>Phase Comp.</td><td style="color:#2e7d32; font-weight:bold;">${info.phase}</td></tr>
+    </table>
+  `;
+}
+
+function syncInputs(idPrefix) {
+  const numInput = document.getElementById(idPrefix + '_val');
+  const rangeInput = document.getElementById(idPrefix + '_range');
+  if (!numInput || !rangeInput) return;
+  
+  numInput.addEventListener('input', () => { 
+    rangeInput.value = numInput.value; calculateFeC(); 
+  });
+  rangeInput.addEventListener('input', () => { 
+    numInput.value = rangeInput.value; calculateFeC(); 
+  });
+}
+
+syncInputs('c');
+syncInputs('t');
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    
+    let c_val = e.currentTarget.getAttribute('data-c');
+    let t_c = parseFloat(e.currentTarget.getAttribute('data-t'));
+    let isF = document.getElementById('unit-sel').value === 'F';
+    let t_display = isF ? Math.round(t_c * 9/5 + 32) : t_c;
+    
+    document.getElementById('c_val').value = c_val;
+    document.getElementById('c_range').value = c_val;
+    document.getElementById('t_val').value = t_display;
+    document.getElementById('t_range').value = t_display;
+    
+    calculateFeC();
+  });
+});
+
+document.getElementById('fec-svg').addEventListener('mousedown', function(e) {
+  const pt = this.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const svgP = pt.matrixTransform(this.getScreenCTM().inverse());
+  
+  let c = ((svgP.x - PAD_L) / W) * MAX_C;
+  let t_c = ((PAD_T + H - svgP.y) / H) * MAX_T;
+  
+  if (c >= 0 && c <= MAX_C && t_c >= 0 && t_c <= MAX_T) {
+    let isF = document.getElementById('unit-sel').value === 'F';
+    let t_display = isF ? Math.round(t_c * 9/5 + 32) : Math.round(t_c);
+    
+    document.getElementById('c_val').value = c.toFixed(2);
+    document.getElementById('c_range').value = c.toFixed(2);
+    document.getElementById('t_val').value = t_display;
+    document.getElementById('t_range').value = t_display;
+    
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    calculateFeC();
+  }
+});
+
+function takeScreenshot() {
+  const calcBox = document.getElementById('fec-calc');
+  if (!calcBox) return;
+  html2canvas(calcBox, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'fec_diagram.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+drawFeCGrid();
+calculateFeC();
+</script>
+
+</body>
+</html>
